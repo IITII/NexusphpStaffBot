@@ -1,0 +1,31 @@
+{
+  "name": "NexusphpStaffBot",
+  "version": "1.0.0",
+  "description": "NexusphpStaffBot",
+  "author": "IITII<ccmejx@gmail.com>",
+  "license": "ISC",
+  "main": "App.js",
+  "scripts": {
+    "start": "node --trace-warnings App.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "async": "^3.2.4",
+    "axios": "^1.5.0",
+    "cheerio": "^1.0.0-rc.12",
+    "cloudscraper": "^4.6.0",
+    "dayjs": "^1.11.10",
+    "encoding": "^0.1.13",
+    "https-proxy-agent": "^7.0.1",
+    "lodash": "^4.17.21",
+    "log4js": "^6.9.1",
+    "qs": "^6.11.2",
+    "redis": "^4.6.8",
+    "telegraf": "^4.13.1",
+    "telegraf-session-local": "^2.1.1",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "0x": "^5.4.1"
+  }
+}

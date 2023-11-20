@@ -1,0 +1,59 @@
+name: dockerbuild
+# https://github.com/marketplace/actions/build-and-push-docker-images#path-context
+# https://docs.docker.com/build/ci/github-actions/
+# https://blog.isayme.org/posts/issues-55/
+
+
+on:
+  push:
+    branches:
+      - 'main'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [webhook]
+
+env:
+  APP_NAME: nexusphp_staff_bot
+  DOCKERHUB_REPO: sikii/nexusphp_staff_bot
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # 构建 Docker 并推送到 Docker hub
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          # 是否 docker push
+          push: true
+          # 生成多平台镜像, see https://github.com/docker-library/bashbrew/blob/v0.1.1/architecture/oci-platform.go
+          # platforms: |
+          #   linux/amd64
+          platforms: |
+            linux/amd64
+            linux/arm/v6
+            linux/arm/v7
+            linux/arm64/v8
+          # docker build arg, 注入 APP_NAME/APP_VERSION
+          build-args: |
+            APP_NAME=${{ env.APP_NAME }}
+            APP_VERSION=${{ env.APP_VERSION }}
+          # 生成两个 docker tag: ${APP_VERSION} 和 latest
+          tags: |
+            ${{ env.DOCKERHUB_REPO }}:latest

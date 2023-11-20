@@ -1,0 +1,40 @@
+version: "3"
+services:
+  web:
+    image: sikii/nexusphp_staff_bot:latest
+    build:
+        context: .
+        dockerfile: Dockerfile
+    restart: unless-stopped
+    network_mode: bridge
+    hostname: staff_bot
+    container_name: staff_bot
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m
+    environment:
+      - TZ=Asia/Shanghai
+      # tg 机器人 token
+      - BOT_TOKEN=xxxxxxxx
+      # tg 群组 id
+      - GROUP_ID=
+      # 通用话题 id
+      - GENERAL_THREAD_ID=
+      # 管理组消息 话题 id
+      - STAFF_MSG_THREAD_ID=
+      # 服务
+      # 开启定时任务, 默认 15 分钟一次
+      - STAFF_MSG_ENABLE=true
+      # - STAFF_MSG_ENABLE=false
+      # 服务配置
+      # mod+ 用户的 cookie, 要不然看不消息...
+      - STAFF_MSG_COOKIE=xxxxxxxx
+      # 站点schema
+      - STAFF_MSG_SITE=PterClub
+      # - STAFF_MSG_SITE=Xfree
+      # - STAFF_MSG_SITE=Audiences
+      # - STAFF_MSG_SITE=Ourbits
+    volumes:
+      - ./bots/site/db:/app/db
+      - ./bots/site/logs:/app/logs
