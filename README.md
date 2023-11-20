@@ -58,6 +58,15 @@ nexusphp 通用 TG 站务机器人
       # - STAFF_MSG_SITE=Ourbits
 ```
 
+## 可用机器人命令列表
+> 编辑机器人命令时可以直接用这个发给 `@BotFather`  
+
+```
+id - 获取 ChatId 等
+staff - 获取管理组消息
+json - 以 json 格式获取消息内容-调试用
+```
+
 ## ID 信息怎么获取?
 
 1. 使用 id 命令
