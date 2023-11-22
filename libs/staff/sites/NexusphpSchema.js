@@ -114,10 +114,7 @@ module.exports = class NexusphpSchema {
     return getDom(url, wrapper, false, this.getCookie())
   }
 
-  /**
-   * TODO: 翻页, 不清楚 url 参数, 搁置
-   */
-  async getReportList() {
+  async getReportList(page = 0) {
     async function handleList($, url, rows) {
       // skip table header and footer
       let res = []
@@ -125,7 +122,6 @@ module.exports = class NexusphpSchema {
         const cols = $(rows[i]).find('td').toArray()
         let title, link, uid, username, userLink, time, id, isRead, detail, type, rowType = 'report'
         title = $(cols[2]).text()
-        link = url
         username = $(cols[1]).text()
         // 系统短讯息没有用户链接
         userLink = $(cols[1]).find('a')[0]?.attribs?.href
@@ -134,14 +130,16 @@ module.exports = class NexusphpSchema {
         detail = $(cols[4]).text()
         isRead = $(cols[5]).text().includes('是')
         id = $(cols[6]).find('input')[0].attribs.value
+        // 手动拼接链接, 避免因为缓存跳过
+        link = `${url}&id=${id}`
 
         res.push({title, link, username, userLink, time, id, isRead, detail, type, rowType})
       }
       // 只判每页最后一个是否已读, 如果已读, 则不再获取下一页
       if (!res[res.length - 1].isRead) {
         // if (page === 0) {
-        // const nextPage = await self.getMessageList(page + 1)
-        // res = res.concat(nextPage.data)
+        const nextPage = await self.getReportList(page + 1)
+        res = res.concat(nextPage.data)
       }
       return Promise.resolve(res)
     }
@@ -150,7 +148,7 @@ module.exports = class NexusphpSchema {
       return self.handleDom($, url, 'table table[align=\'center\']', 'tr', 2, handleList)
     }
 
-    const url = `${this.getOrigin()}/reports.php`
+    const url = `${this.getOrigin()}/reports.php?page=${page}`
     return getDom(url, wrapper, false, this.getCookie())
   }
 
