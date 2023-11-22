@@ -45,5 +45,6 @@ services:
       # - STAFF_MSG_SITE=Audiences
       # - STAFF_MSG_SITE=Ourbits
     volumes:
+      # 部署多个的时候务必修改目录, 保证一个目录对应一个容器
       - ./bots/site/db:/app/db
       - ./bots/site/logs:/app/logs

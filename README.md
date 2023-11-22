@@ -29,6 +29,8 @@ nexusphp 通用 TG 站务机器人
 * [ ] OurBits
 
 ## 运行
+> 部署多个的时候务必修改目录, 保证一个目录对应一个容器  
+>
 
 1. 修改 compose 文件里面以下内容
 2. `docker-compose up -d` 即可
