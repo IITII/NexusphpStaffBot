@@ -53,14 +53,22 @@ async function run() {
 }
 
 async function task(conf) {
-  let staffList = await site.getStaffBoxList()
-  await handleList(staffList)
-  let reportList = await site.getReportList()
-  await handleList(reportList)
-  let messageList = await site.getMessageList()
-  await handleList(messageList)
-  let offerList = await site.getOfferList()
-  await handleList(offerList)
+  if (!conf.disableStaff) {
+    let staffList = await site.getStaffBoxList()
+    await handleList(staffList)
+  }
+  if (!conf.disableReport) {
+    let reportList = await site.getReportList()
+    await handleList(reportList)
+  }
+  if (!conf.disableMessage) {
+    let messageList = await site.getMessageList()
+    await handleList(messageList)
+  }
+  if (!conf.disableOffer) {
+    let offerList = await site.getOfferList()
+    await handleList(offerList)
+  }
 }
 
 function getTitleByRowType(rowType) {

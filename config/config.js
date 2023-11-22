@@ -36,6 +36,10 @@ let config = {
       // 理论上所有 nexusphp 站点都支持, 这里基于 2xfree 进行开发
       site: process.env.STAFF_MSG_SITE || 'PterClub',
       // site: process.env.STAFF_MSG_SITE || 'Xfree',
+      disableStaff: process.env.STAFF_MSG_DISABLE_STAFF === 'true',
+      disableReport: process.env.STAFF_MSG_DISABLE_REPORT === 'true',
+      disableMessage: process.env.STAFF_MSG_DISABLE_MESSAGE === 'true',
+      disableOffer: process.env.STAFF_MSG_DISABLE_OFFER === 'true',
     },
   }
 }
