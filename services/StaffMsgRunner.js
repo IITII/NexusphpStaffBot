@@ -42,13 +42,17 @@ async function run() {
     return
   }
   busy = true
-  logger.warn(`${runnerConf.name} task start...`)
-  cache = fileCache.getCache()
-  cache.staff = cache.staff ? cache.staff : []
-  await task(runnerConf)
-  fileCache.flushCache(cache)
-  rkToLinkMap.flushCache()
-  linkToRowInfoMap.flushCache()
+  try {
+    logger.warn(`${runnerConf.name} task start...`)
+    cache = fileCache.getCache()
+    cache.staff = cache.staff ? cache.staff : []
+    await task(runnerConf)
+    fileCache.flushCache(cache)
+    rkToLinkMap.flushCache()
+    linkToRowInfoMap.flushCache()
+  } catch (e) {
+    logger.error(`Run failed: ${runnerConf.name}, ${e.message}`, e)
+  }
   busy = false
 }
 

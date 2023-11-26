@@ -14,6 +14,6 @@ module.exports = class Xfree extends NexusphpSchema {
    * 没有候选页
    */
   async getOfferList() {
-    return Promise.resolve([])
+    return Promise.resolve({data: []})
   }
 }
