@@ -90,6 +90,33 @@ function getTitleByRowType(rowType) {
   }
 }
 
+function getGroupThreadIdByRowType(rowType) {
+  let groupId, threadId
+  switch (rowType) {
+    case 'staff':
+      groupId = config.jobs.staffMsg.staffMsgGroupId
+      threadId = config.jobs.staffMsg.staffMsgThreadId
+      break
+    case 'report':
+      groupId = config.jobs.staffMsg.reportMsgGroupId
+      threadId = config.jobs.staffMsg.reportMsgThreadId
+      break
+    case 'message':
+      groupId = config.jobs.staffMsg.msgMsgGroupId
+      threadId = config.jobs.staffMsg.msgMsgThreadId
+      break
+    case 'offer':
+      groupId = config.jobs.staffMsg.offerMsgGroupId
+      threadId = config.jobs.staffMsg.offerMsgThreadId
+      break
+    default:
+      groupId = config.message.groupId
+      threadId = config.message.generalMsgThreadId
+      break
+  }
+  return {groupId, threadId}
+}
+
 async function handleList(list) {
   let unReads = list.data.filter(_ => !_.isRead).filter(_ => !cache.staff.includes(_.link))
   for (let unRead of unReads) {
@@ -104,10 +131,11 @@ async function handleList(list) {
     if (['staff', 'report'].includes(unRead.rowType)) {
       links.push({type: 'cb', text: `设为已处理`, url: `cb_${unRead.rowType}_${unRead.id}`})
     }
-    const tgRes = await sendStaffMsg(msg, links)
+    const {groupId, threadId} = getGroupThreadIdByRowType(unRead.rowType)
+    const tgRes = await sendStaffMsg(msg, links, 'html', groupId, threadId)
     logger.debug(`tgRes: ${JSON.stringify(tgRes)}`)
     let message_id = tgRes.message_id || tgRes.result?.message_id
-    const rk = `${config.message.groupId}_${config.message.staffMsgThreadId}_${message_id}`
+    const rk = `${config.message.groupId}_${config.message.generalMsgThreadId}_${message_id}`
     rkToLinkMap.getCache().set(rk, unRead.link)
     linkToRowInfoMap.getCache().set(unRead.link, JSON.parse(JSON.stringify(unRead)))
     cache.staff.push(unRead.link)

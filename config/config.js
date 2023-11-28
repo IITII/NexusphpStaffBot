@@ -14,7 +14,7 @@ let config = {
   message: {
     groupId: process.env.GROUP_ID || '',
     generalThreadId: process.env.GENERAL_THREAD_ID || '',
-    staffMsgThreadId: process.env.STAFF_MSG_THREAD_ID || '',
+    generalMsgThreadId: process.env.GENERAL_MSG_THREAD_ID || '',
     adminId: process.env.ADMIN_ID || '',
     botToken: process.env.BOT_TOKEN || '',
     tokens: {},
@@ -36,9 +36,17 @@ let config = {
       // 理论上所有 nexusphp 站点都支持, 这里基于 2xfree 进行开发
       site: process.env.STAFF_MSG_SITE || 'PterClub',
       // site: process.env.STAFF_MSG_SITE || 'Xfree',
+      staffMsgGroupId: process.env.STAFF_MSG_GROUP_ID || '',
+      staffMsgThreadId: process.env.STAFF_MSG_THREAD_ID || '',
       disableStaff: process.env.STAFF_MSG_DISABLE_STAFF === 'true',
+      reportMsgGroupId: process.env.REPORT_MSG_GROUP_ID || '',
+      reportMsgThreadId: process.env.REPORT_MSG_THREAD_ID || '',
       disableReport: process.env.STAFF_MSG_DISABLE_REPORT === 'true',
+      msgMsgGroupId: process.env.MSG_MSG_GROUP_ID || '',
+      msgMsgThreadId: process.env.MSG_MSG_THREAD_ID || '',
       disableMessage: process.env.STAFF_MSG_DISABLE_MESSAGE === 'true',
+      offerMsgGroupId: process.env.OFFER_MSG_GROUP_ID || '',
+      offerMsgThreadId: process.env.OFFER_MSG_THREAD_ID || '',
       disableOffer: process.env.STAFF_MSG_DISABLE_OFFER === 'true',
     },
   }
@@ -67,6 +75,30 @@ let redisConf = {
 if (!config.message.groupId) {
   console.error(`Set groupId first. config.js or GROUP_ID env`)
 }
+
+// 配置 fallback
+if (!config.message.generalMsgThreadId) {
+  config.message.generalMsgThreadId = config.message.generalThreadId
+}
+
+let groups = ['staffMsgGroupId', 'reportMsgGroupId', 'msgMsgGroupId', 'offerMsgGroupId'],
+  threads = ['staffMsgThreadId', 'reportMsgThreadId', 'msgMsgThreadId', 'offerMsgThreadId']
+
+for (const group of groups) {
+  if (!config.jobs.staffMsg[group]) {
+    config.jobs.staffMsg[group] = config.message.groupId
+  }
+}
+
+for (const thread of threads) {
+  if (!config.jobs.staffMsg[thread]) {
+    config.jobs.staffMsg[thread] = config.message.generalMsgThreadId
+  }
+  if (config.jobs.staffMsg[thread] === 'false') {
+    config.jobs.staffMsg[thread] = undefined
+  }
+}
+
 // config convert
 const proxy = process.env.PROXY?.replace(/https?:\/\//, '')
 if (proxy) {

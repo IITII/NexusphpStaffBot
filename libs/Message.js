@@ -15,27 +15,25 @@ async function sendTextToAdmin(text) {
   return sendTextMsg(message.groupId, text, undefined, false, '\n', undefined, message.generalThreadId)
 }
 
-async function sendSpiderMsg(text) {
-  return sendTextMsg(message.groupId, text, undefined, false, '\n', undefined, message.spiderThreadId)
-}
+// async function sendSpiderMsg(text) {
+//   return sendTextMsg(message.groupId, text, undefined, false, '\n', undefined, message.spiderThreadId)
+// }
+//
+// async function sendScannerMsg(text, parseMode = '') {
+//   return sendTextMsg(message.groupId, text, undefined, false, '\n', parseMode, message.scannerThreadId)
+// }
+//
+// async function sendScannerErrMsg(text, parseMode = '') {
+//   return sendTextMsg(message.groupId, text, undefined, false, '\n', parseMode, message.scannerErrThreadId)
+// }
+//
+// async function sendUploadStatMsg(text, parseMode = undefined) {
+//   return sendTextMsg(message.groupId, text, undefined, false, '\n', parseMode, message.uploadStatThreadId)
+// }
 
-async function sendScannerMsg(text, parseMode = '') {
-  return sendTextMsg(message.groupId, text, undefined, false, '\n', parseMode, message.scannerThreadId)
-}
-
-async function sendScannerErrMsg(text, parseMode = '') {
-  return sendTextMsg(message.groupId, text, undefined, false, '\n', parseMode, message.scannerErrThreadId)
-}
-
-async function sendUploadStatMsg(text, parseMode = undefined) {
-  return sendTextMsg(message.groupId, text, undefined, false, '\n', parseMode, message.uploadStatThreadId)
-}
-
-async function sendStaffMsg(text, links = [], parse_mode = 'html') {
+async function sendStaffMsg(text, links = [], parse_mode = 'html', groupId = message.groupId, message_thread_id = message.generalMsgThreadId) {
   const opts = {
-    parse_mode,
-    disable_web_page_preview: true,
-    message_thread_id: message.staffMsgThreadId,
+    parse_mode, disable_web_page_preview: true, message_thread_id,
     ...Markup.inlineKeyboard(links.map(({text, url, type}) => {
       switch (type) {
         case 'url':
@@ -48,7 +46,7 @@ async function sendStaffMsg(text, links = [], parse_mode = 'html') {
       }
     }))
   }
-  return sendTextMsg429(message.groupId, text, opts)
+  return sendTextMsg429(groupId, text, opts)
 }
 
 async function sendTextMsg(chat_id, text, message_id, preview, sep = '\n', parse_mode = undefined, message_thread_id = undefined) {
@@ -123,9 +121,9 @@ async function handle429(retry = 0, handle, ...args) {
 module.exports = {
   sendTextMsg,
   sendTextToAdmin,
-  sendSpiderMsg,
-  sendScannerMsg,
-  sendUploadStatMsg,
-  sendScannerErrMsg,
+  // sendSpiderMsg,
+  // sendScannerMsg,
+  // sendUploadStatMsg,
+  // sendScannerErrMsg,
   sendStaffMsg,
 }

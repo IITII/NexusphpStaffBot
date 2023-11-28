@@ -22,7 +22,7 @@ services:
       # 通用话题 id
       - GENERAL_THREAD_ID=
       # 管理组消息 话题 id
-      - STAFF_MSG_THREAD_ID=
+      - GENERAL_MSG_THREAD_ID=
       # 服务
       # 开启定时任务, 默认 15 分钟一次
       - STAFF_MSG_ENABLE=true
@@ -31,13 +31,23 @@ services:
       # mod+ 用户的 cookie, 要不然看不消息...
       - STAFF_MSG_COOKIE=xxxxxxxx
       ## 单独控制可选功能, 比如候选单独给种审拉个群
+      # GROUP_ID 和 THREAD_ID 相关配置支持向上 fallback
+      # XXXX_MSG_THREAD_ID=false 时, 支持发送消息到非话题群组, 除了 GENERAL_MSG_THREAD_ID
       # 管理组私信
+      - STAFF_MSG_GROUP_ID=
+      - STAFF_MSG_THREAD_ID=
       - STAFF_MSG_DISABLE_STAFF=false
       # 举报
+      - REPORT_MSG_GROUP_ID=
+      - REPORT_MSG_THREAD_ID=
       - STAFF_MSG_DISABLE_REPORT=false
       # 私信
+      - MSG_MSG_GROUP_ID=
+      - MSG_MSG_THREAD_ID=
       - STAFF_MSG_DISABLE_MESSAGE=false
       # 候选
+      - OFFER_MSG_GROUP_ID=
+      - OFFER_MSG_THREAD_ID=
       - STAFF_MSG_DISABLE_OFFER=false
       # 站点schema
       - STAFF_MSG_SITE=PterClub
