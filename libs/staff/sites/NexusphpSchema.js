@@ -5,6 +5,7 @@
 'use strict'
 
 const qs = require('qs')
+const {groupBy, difference} = require('lodash')
 const {getDom, postDom} = require('../../spider/GetData.js')
 const {jobs} = require('../../../config/config.js')
 const {logger} = require('../../utils/logger.js')
@@ -70,10 +71,16 @@ module.exports = class NexusphpSchema {
     return Promise.resolve({html: $.html(), text: $.text()})
   }
 
+  /**
+   * 读取链接中的 id 信息
+   */
   getUid(userLink) {
     return userLink ? new URL(userLink).searchParams.get('id') : '-1'
   }
 
+  /**
+   * 获取管理组私信列表
+   */
   async getStaffBoxList(page = 0) {
     async function handleList($, url, rows) {
       // skip table header and footer
@@ -114,6 +121,9 @@ module.exports = class NexusphpSchema {
     return getDom(url, wrapper, false, this.getCookie())
   }
 
+  /**
+   * 获取举报列表
+   */
   async getReportList(page = 0) {
     async function handleList($, url, rows) {
       // skip table header and footer
@@ -152,6 +162,9 @@ module.exports = class NexusphpSchema {
     return getDom(url, wrapper, false, this.getCookie())
   }
 
+  /**
+   * 获取私信列表
+   */
   async getMessageList(page = 0) {
     async function handleList($, url, rows) {
       // skip table header and footer
@@ -195,6 +208,7 @@ module.exports = class NexusphpSchema {
 
   /**
    * TODO: 分页, 不清楚 url 参数, 搁置
+   * 获取候选列表
    */
   async getOfferList() {
     async function handleList($, url, rows) {
@@ -227,6 +241,10 @@ module.exports = class NexusphpSchema {
   }
 
 
+  /**
+   * 获取管理组私信详情
+   * @param id pmId
+   */
   async getStaffBoxDetail(id) {
     async function handleDetail($, url) {
       let title, detail
@@ -241,11 +259,17 @@ module.exports = class NexusphpSchema {
     return getDom(url, handleDetail, false, this.getCookie())
   }
 
+  /**
+   * 获取举报详情
+   */
   async getReportDetail(id) {
     const url = `${this.getOrigin()}/report.php?action=view&id=${id}`
     throw new Error(`暂时不支持获取举报详情`)
   }
 
+  /**
+   * 获取私信详情
+   */
   async getMessageDetail(id) {
     async function handleDetail($, url) {
       let title, detail
@@ -258,6 +282,9 @@ module.exports = class NexusphpSchema {
     return getDom(url, handleDetail, false, this.getCookie())
   }
 
+  /**
+   * 设置管理组私信为已处理
+   */
   async setStaffBoxAnswered(id) {
     const url = `${this.getOrigin()}/staffbox.php?action=takecontactanswered`
     const postBody = qs.stringify({'setanswered[]': id, 'setdealt': '设为已回复'})
@@ -268,6 +295,9 @@ module.exports = class NexusphpSchema {
     return Promise.resolve()
   }
 
+  /**
+   * 设置举报为已处理
+   */
   async setReportAnswered(id) {
     const url = `${this.getOrigin()}/takeupdate.php`
     const postBody = qs.stringify({'delreport[]': id, 'setdealt': '设为已处理'})
@@ -278,6 +308,9 @@ module.exports = class NexusphpSchema {
     return Promise.resolve()
   }
 
+  /**
+   * 回复管理组私信
+   */
   async replyStaffBox(uid, pmId, msg) {
     const url = `${this.getOrigin()}/staffbox.php?action=takeanswer`
     let postBody = {
@@ -292,6 +325,9 @@ module.exports = class NexusphpSchema {
     return Promise.resolve()
   }
 
+  /**
+   * 回复私信
+   */
   async replyMessage(uid, title, msg) {
     const url = `${this.getOrigin()}/takemessage.php`
     let postBody = {
@@ -306,4 +342,66 @@ module.exports = class NexusphpSchema {
     }
     return Promise.resolve()
   }
+
+  /**
+   * 获取`编辑用户`部分详情 <br>
+   * 数据形式: 1. 下拉选择, 2. 文本输入 3. 圆形单选 4. 复选框 5. textarea<br>
+   * 1: select 2: input 3: input[type='radio'] 4: input[type='checkbox'] 5. textarea[name]<br>
+   * 禁用/隐藏形式: 1. select[disable] 2. input[disable] 3. input[type='hidden']
+   */
+  async getModTaskDetail(uid) {
+    if (!uid) throw new Error(`uid is empty`)
+    async function handleDom($, url) {
+      console.log(url)
+      let inputs = $("form[action='modtask.php'] input[value]").get(),
+        selects = $("form[action='modtask.php'] select[name]").get(),
+        textareas = $("form[action='modtask.php'] textarea[name]").get()
+      let res = {}
+      if (inputs.length === 0) {
+        logger.warn(`No data in ${url}, 可能是没权限, 或者编辑自己`)
+      } else {
+        let grouped = groupBy(inputs.map(_ => _.attribs), 'name')
+        delete grouped['undefined']
+        let formatGroups = {}, formatValues = {}
+        for (const k in grouped) {
+          let gv = grouped[k]
+          if (gv.length < 1) {
+            throw new Error(`unknown key: ${k} for value length === 0`)
+          } else if (gv.length === 1) {
+            formatGroups[k] = gv[0]
+            formatValues[k] = gv[0].value
+          } else {
+            let tmp
+            switch (gv[0].type) {
+              case 'radio':
+                tmp = gv.filter(_ => _.checked)
+                break
+              case 'checkbox':
+              default:
+                throw new Error(`unknown type: ${gv[0].type}`)
+            }
+            if (tmp.length === 0) {
+              throw new Error(`unable to get value for ${k} in ${JSON.stringify(gv)}`)
+            } else {
+              formatGroups[k] = tmp[0]
+              formatValues[k] = tmp[0].value
+            }
+          }
+        }
+        res = {formatGroups, formatValues}
+      }
+      res.GET_DATA = Object.keys(res.formatGroups || {}).length !== 0
+      return Promise.resolve(res)
+    }
+    const url = `${this.getOrigin()}/userdetails.php?id=${uid}`
+    return getDom(url, handleDom, false, this.getCookie())
+  }
+
+  /**
+   * 启用下载权限
+   */
+  // async enableDownloadPermission(uid) {
+  //   let modTask = await this.getModTaskDetail(uid)
+  //   console.log(modTask)
+  // }
 }
