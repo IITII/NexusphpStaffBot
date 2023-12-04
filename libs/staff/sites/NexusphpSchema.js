@@ -49,6 +49,7 @@ module.exports = class NexusphpSchema {
         res = await handleRow($, url, rows)
         res = res.map(r => {
           r.link = toAbsUrl(r.link, url)
+          r.trLink = toAbsUrl(r.trLink, url)
           r.userLink = toAbsUrl(r.userLink, url)
           r.uid = self.getUid(r.userLink)
           r.uid = parseInt(r.uid)
