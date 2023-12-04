@@ -134,9 +134,12 @@ async function handleList(list, conf) {
     if (unRead.detail) {
       msg += `\n内容:\n${unRead.detail}`
     }
-    const links = [{type: 'url', text: '查看详情', url: unRead.link}]
+    let links = [{type: 'url', text: '查看详情', url: unRead.link}]
     if (['staff', 'report'].includes(unRead.rowType)) {
       links.push({type: 'cb', text: `设为已处理`, url: `cb_${unRead.rowType}_${unRead.id}`})
+    }
+    if (['report'].includes(unRead.rowType) && unRead.trLink) {
+      links = [{type: 'url', text: `种子详情`, url: unRead.trLink}, ...links]
     }
     const {groupId, threadId} = getGroupThreadIdByRowType(unRead.rowType)
     const tgRes = await sendStaffMsg(msg, links, 'html', groupId, threadId)
