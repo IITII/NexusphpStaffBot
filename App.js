@@ -56,10 +56,26 @@ async function main() {
   return Promise.resolve()
 }
 
+/**
+ * reset bot commands
+ * @see https://github.com/telegraf/telegraf/issues/1589
+ * @see https://github.com/jxxghp/MoviePilot/blob/0214beb6798f161623bf294266b1121040e83a41/app/modules/telegram/telegram.py#L216
+ */
+async function resetBotCommand(bot) {
+  const commands = [
+    {command: 'staff', description: '手动检查'},
+    {command: 'id', description: '获取当前聊天的 ChatId, 话题 ID, 消息 ID'},
+    {command: 'json', description: '以 json 格式获取消息内容-调试用'},
+  ]
+  await bot.telegram.deleteMyCommands()
+  return bot.telegram.setMyCommands(commands)
+}
+
 // Error Handling
 Promise.resolve()
   .then(_ => StaffMsgRunner.start())
   .then(_ => main())
+  .then(_ => resetBotCommand(bot))
   .then(_ => {
     // Enable graceful stop
     process.on('uncaughtException' || 'unhandledRejection', lis_err)
