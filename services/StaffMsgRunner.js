@@ -59,19 +59,19 @@ async function run() {
 async function task(conf) {
   if (!conf.disableStaff) {
     let staffList = await site.getStaffBoxList()
-    await handleList(staffList)
+    await handleList(staffList, conf)
   }
   if (!conf.disableReport) {
     let reportList = await site.getReportList()
-    await handleList(reportList)
+    await handleList(reportList, conf)
   }
   if (!conf.disableMessage) {
     let messageList = await site.getMessageList()
-    await handleList(messageList)
+    await handleList(messageList, conf)
   }
   if (!conf.disableOffer) {
     let offerList = await site.getOfferList()
-    await handleList(offerList)
+    await handleList(offerList, conf)
   }
 }
 
@@ -94,22 +94,25 @@ function getGroupThreadIdByRowType(rowType) {
   let groupId, threadId
   switch (rowType) {
     case 'staff':
-      groupId = config.jobs.staffMsg.staffMsgGroupId
-      threadId = config.jobs.staffMsg.staffMsgThreadId
-      break
+      // groupId = config.jobs.staffMsg.staffMsgGroupId
+      // threadId = config.jobs.staffMsg.staffMsgThreadId
+      // break
     case 'report':
-      groupId = config.jobs.staffMsg.reportMsgGroupId
-      threadId = config.jobs.staffMsg.reportMsgThreadId
-      break
+      // groupId = config.jobs.staffMsg.reportMsgGroupId
+      // threadId = config.jobs.staffMsg.reportMsgThreadId
+      // break
     case 'message':
-      groupId = config.jobs.staffMsg.msgMsgGroupId
-      threadId = config.jobs.staffMsg.msgMsgThreadId
-      break
+      // groupId = config.jobs.staffMsg.messageMsgGroupId
+      // threadId = config.jobs.staffMsg.messageMsgThreadId
+      // break
     case 'offer':
-      groupId = config.jobs.staffMsg.offerMsgGroupId
-      threadId = config.jobs.staffMsg.offerMsgThreadId
+      // groupId = config.jobs.staffMsg.offerMsgGroupId
+      // threadId = config.jobs.staffMsg.offerMsgThreadId
+      groupId = config.jobs.staffMsg[`${rowType}MsgGroupId`]
+      threadId = config.jobs.staffMsg[`${rowType}MsgThreadId`]
       break
     default:
+      logger.error(`[getGroupThreadIdByRowType] No support rowType: ${rowType}`)
       groupId = config.message.groupId
       threadId = config.message.generalMsgThreadId
       break
@@ -117,13 +120,16 @@ function getGroupThreadIdByRowType(rowType) {
   return {groupId, threadId}
 }
 
-async function handleList(list) {
+async function handleList(list, conf) {
   let unReads = list.data.filter(_ => !_.isRead).filter(_ => !cache.staff.includes(_.link))
   for (let unRead of unReads) {
     let msg = `<b>#${getTitleByRowType(unRead.rowType)}</b>
-标题: ${unRead.title}
 时间: ${unRead.time}
-发送人: ${unRead.username}`
+标题: ${unRead.title}`
+
+    if (unRead.username && conf[`${unRead.rowType}ShowUser`]) {
+      msg += `\n发送人: ${unRead.username}\n`
+    }
     if (unRead.detail) {
       msg += `\n内容:\n${unRead.detail}`
     }

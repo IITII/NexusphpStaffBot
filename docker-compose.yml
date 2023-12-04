@@ -2,9 +2,9 @@ version: "3"
 services:
   web:
     image: sikii/nexusphp_staff_bot:latest
-    build:
-        context: .
-        dockerfile: Dockerfile
+    # build:
+    #     context: .
+    #     dockerfile: Dockerfile
     restart: unless-stopped
     network_mode: bridge
     hostname: staff_bot
@@ -25,6 +25,7 @@ services:
       - GENERAL_MSG_THREAD_ID=
       # 服务
       # 开启定时任务, 默认 15 分钟一次
+      - STAFF_MSG_PERIOD=15
       - STAFF_MSG_ENABLE=true
       # - STAFF_MSG_ENABLE=false
       # 服务配置
@@ -34,21 +35,28 @@ services:
       # GROUP_ID 和 THREAD_ID 相关配置支持向上 fallback
       # XXXX_MSG_THREAD_ID=false 时, 支持发送消息到非话题群组, 除了 GENERAL_MSG_THREAD_ID
       # 管理组私信
+      # GROUP_ID 和 THREAD_ID, 支持发送到不同群聊
       - STAFF_MSG_GROUP_ID=
       - STAFF_MSG_THREAD_ID=
+      # 是否在消息里显示发送人, 只有设置为 false 才不显示
+      - STAFF_MSG_SHOW_USER=
+      # 是否禁用
       - STAFF_MSG_DISABLE_STAFF=false
       # 举报
       - REPORT_MSG_GROUP_ID=
       - REPORT_MSG_THREAD_ID=
+      - REPORT_MSG_SHOW_USER=
       - STAFF_MSG_DISABLE_REPORT=false
-      # 私信
-      - MSG_MSG_GROUP_ID=
-      - MSG_MSG_THREAD_ID=
-      - STAFF_MSG_DISABLE_MESSAGE=false
       # 候选
       - OFFER_MSG_GROUP_ID=
       - OFFER_MSG_THREAD_ID=
+      - OFFER_MSG_SHOW_USER=
       - STAFF_MSG_DISABLE_OFFER=false
+      # 私信
+      - MSG_MSG_GROUP_ID=
+      - MSG_MSG_THREAD_ID=
+      - MSG_MSG_SHOW_USER=
+      - STAFF_MSG_DISABLE_MESSAGE=false
       # 站点schema
       - STAFF_MSG_SITE=PterClub
       # - STAFF_MSG_SITE=Xfree
