@@ -122,6 +122,7 @@ function getGroupThreadIdByRowType(rowType) {
 
 async function handleList(list, conf) {
   let unReads = list.data.filter(_ => !_.isRead).filter(_ => !cache.staff.includes(_.link))
+  logger.debug(`list: ${JSON.stringify(list)}, unReads: ${JSON.stringify(unReads)}`)
   for (let unRead of unReads) {
     let msg = `<b>#${getTitleByRowType(unRead.rowType)}</b>
 时间: ${unRead.time}
