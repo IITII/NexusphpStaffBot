@@ -30,24 +30,32 @@ let config = {
       name: 'StaffMsg',
       enable: process.env.STAFF_MSG_ENABLE !== 'false',
       // 15 分钟
-      period: 15 * 60 * 1000,
+      period: process.env.STAFF_MSG_PERIOD || '15',
       // 推荐使用公用账户进行发送, mod+ 自己拉个群
       cookie: process.env.STAFF_MSG_COOKIE || '',
       // 理论上所有 nexusphp 站点都支持, 这里基于 2xfree 进行开发
       site: process.env.STAFF_MSG_SITE || 'PterClub',
       // site: process.env.STAFF_MSG_SITE || 'Xfree',
+      // 管理组私信
       staffMsgGroupId: process.env.STAFF_MSG_GROUP_ID || '',
       staffMsgThreadId: process.env.STAFF_MSG_THREAD_ID || '',
+      staffShowUser: process.env.STAFF_MSG_SHOW_USER !== 'false',
       disableStaff: process.env.STAFF_MSG_DISABLE_STAFF === 'true',
+      // 举报
       reportMsgGroupId: process.env.REPORT_MSG_GROUP_ID || '',
       reportMsgThreadId: process.env.REPORT_MSG_THREAD_ID || '',
+      reportShowUser: process.env.REPORT_MSG_SHOW_USER !== 'false',
       disableReport: process.env.STAFF_MSG_DISABLE_REPORT === 'true',
-      msgMsgGroupId: process.env.MSG_MSG_GROUP_ID || '',
-      msgMsgThreadId: process.env.MSG_MSG_THREAD_ID || '',
-      disableMessage: process.env.STAFF_MSG_DISABLE_MESSAGE === 'true',
+      // 候选
       offerMsgGroupId: process.env.OFFER_MSG_GROUP_ID || '',
       offerMsgThreadId: process.env.OFFER_MSG_THREAD_ID || '',
+      offerShowUser: process.env.OFFER_MSG_SHOW_USER !== 'false',
       disableOffer: process.env.STAFF_MSG_DISABLE_OFFER === 'true',
+      // 私信
+      messageMsgGroupId: process.env.MSG_MSG_GROUP_ID || '',
+      messageMsgThreadId: process.env.MSG_MSG_THREAD_ID || '',
+      messageShowUser: process.env.MSG_MSG_SHOW_USER !== 'false',
+      disableMessage: process.env.STAFF_MSG_DISABLE_MESSAGE === 'true',
     },
   }
 }
@@ -98,6 +106,8 @@ for (const thread of threads) {
     config.jobs.staffMsg[thread] = undefined
   }
 }
+
+config.jobs.staffMsg.period = (parseInt(config.jobs.staffMsg.period) || 15) * 60 * 1000
 
 // config convert
 const proxy = process.env.PROXY?.replace(/https?:\/\//, '')
