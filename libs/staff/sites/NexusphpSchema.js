@@ -131,7 +131,7 @@ module.exports = class NexusphpSchema {
       let res = []
       for (let i = 1; i < rows.length - 1; i++) {
         const cols = $(rows[i]).find('td').toArray()
-        let title, link, trLink, uid, username, userLink, time, id, isRead, detail, type,rowType = 'report'
+        let title, link, trLink, addLink, uid, username, userLink, time, id, isRead, detail, type,rowType = 'report'
         title = $(cols[2]).text()
         trLink = $(cols[2]).find('a')[0]?.attribs?.href
         username = $(cols[1]).text()
@@ -143,9 +143,11 @@ module.exports = class NexusphpSchema {
         isRead = $(cols[5]).text().includes('是')
         id = $(cols[6]).find('input')[0].attribs.value
         // 手动拼接链接, 避免因为缓存跳过
-        link = `${url}&id=${id}`
+        // 举报太多翻页了, 导致重复举报...
+        addLink = url
+        link = `${self.getOrigin()}/reports.php?id=${id}`
 
-        res.push({title, link, trLink, username, userLink, time, id, isRead, detail, type, rowType})
+        res.push({title, link, trLink, addLink, username, userLink, time, id, isRead, detail, type, rowType})
       }
       // 只判每页最后一个是否已读, 如果已读, 则不再获取下一页
       if (!res[res.length - 1].isRead) {
