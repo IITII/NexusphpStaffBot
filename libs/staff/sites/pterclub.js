@@ -7,6 +7,6 @@ const NexusphpSchema = require('./NexusphpSchema.js')
 module.exports = class PterClub extends NexusphpSchema {
 
   getOrigin() {
-    return 'https://pterclub.com'
+    return process.env.CDN_PTER || 'https://pterclub.com'
   }
 }
