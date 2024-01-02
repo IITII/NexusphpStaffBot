@@ -18,7 +18,10 @@ async function action_async_handler(ctx) {
   logger.debug('action_async_handler', message, action, prefix, rowType, rowId)
   if (prefix && rowType && rowId) {
     await StaffMsgRunner.setAnswered(rowType, rowId)
-    return ctx.answerCbQuery(`摆烂成功~`)
+    setTimeout(() => {
+      ctx.deleteMessage(message.message_id)
+    }, 2000)
+    return ctx.answerCbQuery(`摆烂成功~, 2s 后自动删除~`)
   } else {
     return ctx.answerCbQuery(`unknown: ${action}!!!`)
   }
