@@ -92,7 +92,8 @@ module.exports = class NexusphpSchema {
         title = $(cols[0]).text()
         link = $(cols[0]).find('a')[0].attribs.href
         username = $(cols[1]).text()
-        userLink = $(cols[1]).find('a')[0].attribs.href
+        // 申请删除账号后, 用户名会变成 (无此帐户)
+        userLink = $(cols[1]).find('a')[0]?.attribs?.href
         time = $(cols[2]).find('span')[0].attribs.title
         isRead = $(cols[3]).text().includes('是')
         id = $(cols[4]).find('input')[0].attribs.value
@@ -106,7 +107,7 @@ module.exports = class NexusphpSchema {
         res.push(tmp)
       }
       // 只判每页最后一个是否已读, 如果已读, 则不再获取下一页
-      if (!res[res.length - 1].isRead) {
+      if (!res[res.length - 1]?.isRead) {
         // if (page === 0) {
         const nextPage = await self.getStaffBoxList(page + 1)
         res = res.concat(nextPage.data)
@@ -127,6 +128,10 @@ module.exports = class NexusphpSchema {
    */
   async getReportList(page = 0) {
     async function handleList($, url, rows) {
+      if (rows.length > 0 && $(rows[0]).text().includes('没有举报信息')) {
+        logger.debug(`没有举报消息 in ${url}`)
+        return Promise.resolve([])
+      }
       // skip table header and footer
       let res = []
       for (let i = 1; i < rows.length - 1; i++) {
@@ -150,7 +155,7 @@ module.exports = class NexusphpSchema {
         res.push({title, link, trLink, addLink, username, userLink, time, id, isRead, detail, type, rowType})
       }
       // 只判每页最后一个是否已读, 如果已读, 则不再获取下一页
-      if (!res[res.length - 1].isRead) {
+      if (!res[res.length - 1]?.isRead) {
         // if (page === 0) {
         const nextPage = await self.getReportList(page + 1)
         res = res.concat(nextPage.data)
@@ -194,7 +199,7 @@ module.exports = class NexusphpSchema {
         res.push(tmp)
       }
       // 只判每页最后一个是否已读, 如果已读, 则不再获取下一页
-      if (!res[res.length - 1].isRead) {
+      if (!res[res.length - 1]?.isRead) {
         // if (page === 0) {
         const nextPage = await self.getMessageList(page + 1)
         res = res.concat(nextPage.data)
