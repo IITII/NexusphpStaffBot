@@ -86,7 +86,7 @@ async function handleList(list, conf) {
     if (rk) {
       const [groupId, threadId, message_id] = rk.split('_')
       logger.info(`delete msg: groupId: ${groupId}, threadId: ${threadId}, message_id: ${message_id} for ${rowInfo.link}`)
-      await deleteMsg(groupId, message_id)
+      await deleteMsg(groupId, message_id, true)
 
       // 清理缓存
       delete cache.linkToMsgRK[rowInfo.link]
