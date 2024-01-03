@@ -29,7 +29,7 @@ module.exports = class FileCache {
   }
 
   flushCache(new_cache) {
-    fs.writeFileSync(this.filename, JSON.stringify(new_cache))
+    fs.writeFileSync(this.filename, JSON.stringify(new_cache, null, 2))
     this.cache = new_cache
   }
 }

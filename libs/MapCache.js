@@ -29,7 +29,7 @@ module.exports = class MapCache {
   }
 
   flushCache(new_cache = this.getCache()) {
-    fs.writeFileSync(this.filename, JSON.stringify([...new_cache.entries()]))
+    fs.writeFileSync(this.filename, JSON.stringify([...new_cache.entries()], null, 2))
     this.cache = new_cache
   }
 }
