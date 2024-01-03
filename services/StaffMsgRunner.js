@@ -124,36 +124,46 @@ async function handleList(list, conf) {
   let unReads = list.data.filter(_ => !_.isRead).filter(_ => !cache.staff.includes(_.link))
   logger.debug(`list: ${JSON.stringify(list)}, unReads: ${JSON.stringify(unReads)}`)
   for (let unRead of unReads) {
-    let msg = `<b>#${getTitleByRowType(unRead.rowType)}</b>
-时间: ${unRead.time}
-标题: ${unRead.title}`
-
-    if (unRead.username && conf[`${unRead.rowType}ShowUser`]) {
-      msg += `\n发送人: ${unRead.username}\n`
-    }
-    if (unRead.detail) {
-      msg += `\n内容:\n${unRead.detail}`
-    }
-    let links = [{type: 'url', text: '查看详情', url: unRead.link}]
-    if (['staff', 'report'].includes(unRead.rowType)) {
-      links.push({type: 'cb', text: `设为已处理`, url: `cb_${unRead.rowType}_${unRead.id}`})
-    }
-    if (['report'].includes(unRead.rowType) && unRead.trLink) {
-      links = [
-        {type: 'url', text: `种子详情`, url: unRead.trLink},
-        {type: 'url', text: '查看详情', url: unRead.addLink},
-        ...links.slice(1)
-      ]
-    }
+    let msg = buildMsgByRowInfo(conf, unRead)
+    let links = buildLinksByRowInfo(conf, unRead)
     const {groupId, threadId} = getGroupThreadIdByRowType(unRead.rowType)
     const tgRes = await sendStaffMsg(msg, links, 'html', groupId, threadId)
     logger.debug(`tgRes: ${JSON.stringify(tgRes)}`)
     let message_id = tgRes.message_id || tgRes.result?.message_id
-    const rk = `${config.message.groupId}_${config.message.generalMsgThreadId}_${message_id}`
+    const rk = `${groupId}_${threadId}_${message_id}`
     rkToLinkMap.getCache().set(rk, unRead.link)
     linkToRowInfoMap.getCache().set(unRead.link, JSON.parse(JSON.stringify(unRead)))
     cache.staff.push(unRead.link)
   }
+}
+
+function buildMsgByRowInfo(conf, rowInfo) {
+  let msg = `<b>#${getTitleByRowType(rowInfo.rowType)}</b>
+时间: ${rowInfo.time}
+标题: ${rowInfo.title}`
+
+  if (rowInfo.username && conf[`${rowInfo.rowType}ShowUser`]) {
+    msg += `\n发送人: ${rowInfo.username}\n`
+  }
+  if (rowInfo.detail) {
+    msg += `\n内容:\n${rowInfo.detail}`
+  }
+  return msg
+}
+
+function buildLinksByRowInfo(conf, rowInfo) {
+  let links = [{type: 'url', text: '查看详情', url: rowInfo.link}]
+  if (['staff', 'report'].includes(rowInfo.rowType)) {
+    links.push({type: 'cb', text: `设为已处理`, url: `cb_${rowInfo.rowType}_${rowInfo.id}`})
+  }
+  if (['report'].includes(rowInfo.rowType) && rowInfo.trLink) {
+    links = [
+      {type: 'url', text: `种子详情`, url: rowInfo.trLink},
+      {type: 'url', text: '查看详情', url: rowInfo.addLink},
+      ...links.slice(1)
+    ]
+  }
+  return links
 }
 
 async function setAnswered(rowType, rowId) {
