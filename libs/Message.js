@@ -15,21 +15,23 @@ async function sendTextToAdmin(text) {
   return sendTextMsg(message.groupId, text, undefined, false, '\n', undefined, message.generalThreadId)
 }
 
-// async function sendSpiderMsg(text) {
-//   return sendTextMsg(message.groupId, text, undefined, false, '\n', undefined, message.spiderThreadId)
-// }
-//
-// async function sendScannerMsg(text, parseMode = '') {
-//   return sendTextMsg(message.groupId, text, undefined, false, '\n', parseMode, message.scannerThreadId)
-// }
-//
-// async function sendScannerErrMsg(text, parseMode = '') {
-//   return sendTextMsg(message.groupId, text, undefined, false, '\n', parseMode, message.scannerErrThreadId)
-// }
-//
-// async function sendUploadStatMsg(text, parseMode = undefined) {
-//   return sendTextMsg(message.groupId, text, undefined, false, '\n', parseMode, message.uploadStatThreadId)
-// }
+/**
+ * 删除 TG 消息
+ * @param chat_id 群组 id
+ * @param message_id 消息 id
+ * @param noThrow 是否抛出异常
+ */
+async function deleteMsg(chat_id, message_id, noThrow = false) {
+  try {
+    return handle429(0, deleteMessage, chat_id, message_id)
+  } catch (e) {
+    logger.warn(`deleteMsg failed: ${e.message}`, e)
+    if (!noThrow) {
+      throw e
+    }
+    return Promise.resolve()
+  }
+}
 
 async function sendStaffMsg(text, links = [], parse_mode = 'html', groupId = message.groupId, message_thread_id = message.generalMsgThreadId) {
   const opts = {
@@ -95,6 +97,7 @@ async function sendTextMsg429(chat_id, text, opts, sep = '\n') {
 }
 
 const sendMessage = (chat_id, text, opts) => bot.telegram.sendMessage(chat_id, text, opts)
+const deleteMessage = (chat_id, message_id) => bot.telegram.deleteMessage(chat_id, message_id)
 
 async function handle429(retry = 0, handle, ...args) {
   const msg_429 = 'Too Many Requests: retry after'
@@ -121,9 +124,6 @@ async function handle429(retry = 0, handle, ...args) {
 module.exports = {
   sendTextMsg,
   sendTextToAdmin,
-  // sendSpiderMsg,
-  // sendScannerMsg,
-  // sendUploadStatMsg,
-  // sendScannerErrMsg,
   sendStaffMsg,
+  deleteMsg,
 }

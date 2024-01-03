@@ -12,7 +12,7 @@ const FileCache = require('../libs/FileCache.js'),
   linkToRowInfoMap = new MapCache(config.linkToRowInfo),
   fileCache = new FileCache(config.staffCache)
 const {logger} = require('../libs/utils/logger.js')
-const {sendStaffMsg} = require('../libs/Message.js')
+const {sendStaffMsg, deleteMsg} = require('../libs/Message.js')
 const sites = require('../libs/staff/sites'),
   Site = sites[runnerConf.site]
 if (!Site) {
@@ -46,6 +46,7 @@ async function run() {
     logger.warn(`${runnerConf.name} task start...`)
     cache = fileCache.getCache()
     cache.staff = cache.staff ? cache.staff : []
+    cache.linkToMsgRK = cache.linkToMsgRK ? cache.linkToMsgRK : {}
     await task(runnerConf)
     fileCache.flushCache(cache)
     rkToLinkMap.flushCache()
@@ -72,6 +73,40 @@ async function task(conf) {
   if (!conf.disableOffer) {
     let offerList = await site.getOfferList()
     await handleList(offerList, conf)
+  }
+}
+
+async function handleList(list, conf) {
+  let reads = list.data.filter(_ => _.isRead)
+  let unReads = list.data.filter(_ => !_.isRead).filter(_ => !cache.staff.includes(_.link))
+  logger.debug(`list: ${JSON.stringify(list)}, unReads: ${JSON.stringify(unReads)}, reads: ${JSON.stringify(reads)}`)
+  // 处理已读
+  for (let rowInfo of reads) {
+    const rk = cache.linkToMsgRK[rowInfo.link]
+    if (rk) {
+      const [groupId, threadId, message_id] = rk.split('_')
+      logger.info(`delete msg: groupId: ${groupId}, threadId: ${threadId}, message_id: ${message_id} for ${rowInfo.link}`)
+      await deleteMsg(groupId, message_id)
+
+      // 清理缓存
+      delete cache.linkToMsgRK[rowInfo.link]
+      rkToLinkMap.getCache().delete(rk)
+      linkToRowInfoMap.getCache().delete(rowInfo.link)
+    }
+  }
+  // 处理未读
+  for (let rowInfo of unReads) {
+    let msg = buildMsgByRowInfo(conf, rowInfo)
+    let links = buildLinksByRowInfo(conf, rowInfo)
+    const {groupId, threadId} = getGroupThreadIdByRowType(rowInfo.rowType)
+    const tgRes = await sendStaffMsg(msg, links, 'html', groupId, threadId)
+    logger.debug(`tgRes: ${JSON.stringify(tgRes)}`)
+    let message_id = tgRes.message_id || tgRes.result?.message_id
+    const rk = `${groupId}_${threadId}_${message_id}`
+    rkToLinkMap.getCache().set(rk, rowInfo.link)
+    linkToRowInfoMap.getCache().set(rowInfo.link, JSON.parse(JSON.stringify(rowInfo)))
+    cache.staff.push(rowInfo.link)
+    cache.linkToMsgRK[rowInfo.link] = rk
   }
 }
 
@@ -118,23 +153,6 @@ function getGroupThreadIdByRowType(rowType) {
       break
   }
   return {groupId, threadId}
-}
-
-async function handleList(list, conf) {
-  let unReads = list.data.filter(_ => !_.isRead).filter(_ => !cache.staff.includes(_.link))
-  logger.debug(`list: ${JSON.stringify(list)}, unReads: ${JSON.stringify(unReads)}`)
-  for (let unRead of unReads) {
-    let msg = buildMsgByRowInfo(conf, unRead)
-    let links = buildLinksByRowInfo(conf, unRead)
-    const {groupId, threadId} = getGroupThreadIdByRowType(unRead.rowType)
-    const tgRes = await sendStaffMsg(msg, links, 'html', groupId, threadId)
-    logger.debug(`tgRes: ${JSON.stringify(tgRes)}`)
-    let message_id = tgRes.message_id || tgRes.result?.message_id
-    const rk = `${groupId}_${threadId}_${message_id}`
-    rkToLinkMap.getCache().set(rk, unRead.link)
-    linkToRowInfoMap.getCache().set(unRead.link, JSON.parse(JSON.stringify(unRead)))
-    cache.staff.push(unRead.link)
-  }
 }
 
 function buildMsgByRowInfo(conf, rowInfo) {
@@ -216,8 +234,13 @@ async function handleTgMsg(ctx) {
             default:
               throw new Error(`No support rowType: ${rowInfo.rowType}`)
           }
+          // 清理缓存
           rkToLinkMap.getCache().delete(rk)
           linkToRowInfoMap.getCache().delete(link)
+          let cache = fileCache.getCache()
+          cache?.linkToMsgRK && delete cache.linkToMsgRK[link]
+          // 刷新缓存
+          fileCache.flushCache(cache)
           rkToLinkMap.flushCache()
           linkToRowInfoMap.flushCache()
           await ctx.reply(`已回复`, {reply_to_message_id: message_id})
