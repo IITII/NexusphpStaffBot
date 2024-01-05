@@ -46,7 +46,8 @@ async function run() {
     logger.warn(`${runnerConf.name} task start...`)
     cache = fileCache.getCache()
     cache.staff = cache.staff ? cache.staff : []
-    cache.linkToMsgRK = cache.linkToMsgRK ? cache.linkToMsgRK : {}
+    cache.linkToMsgRK = cache.linkToMsgRK || {}
+    cache.rowType = cache.rowType || {}
     await task(runnerConf)
     fileCache.flushCache(cache)
     rkToLinkMap.flushCache()
@@ -59,18 +60,24 @@ async function run() {
 
 async function task(conf) {
   if (!conf.disableStaff) {
-    let staffList = await site.getStaffBoxList()
+    cache.rowType.staff = cache.rowType?.staff || {}
+    let minId = getMinIdByRowType('staff')
+    let staffList = await site.getStaffBoxList(minId)
     await handleList(staffList, conf)
   }
   if (!conf.disableReport) {
-    let reportList = await site.getReportList()
+    cache.rowType.report = cache.rowType?.report || {}
+    let minId = getMinIdByRowType('report')
+    let reportList = await site.getReportList(minId)
     await handleList(reportList, conf)
   }
   if (!conf.disableMessage) {
+    cache.rowType.message = cache.rowType?.message || {}
     let messageList = await site.getMessageList()
     await handleList(messageList, conf)
   }
   if (!conf.disableOffer) {
+    cache.rowType.offer = cache.rowType?.offer || {}
     let offerList = await site.getOfferList()
     await handleList(offerList, conf)
   }
@@ -89,7 +96,9 @@ async function handleList(list, conf) {
       await deleteMsg(groupId, message_id, true)
 
       // 清理缓存
-      delete cache.linkToMsgRK[rowInfo.link]
+      let rowInfo = linkToRowInfoMap.getCache().get(rowInfo.link)
+      cache?.linkToMsgRK && delete cache.linkToMsgRK[rowInfo.link]
+      cache?.rowType[rowInfo.rowType] && delete cache.rowType[rowInfo.rowType][rowInfo.link]
       rkToLinkMap.getCache().delete(rk)
       linkToRowInfoMap.getCache().delete(rowInfo.link)
     }
@@ -107,7 +116,16 @@ async function handleList(list, conf) {
     linkToRowInfoMap.getCache().set(rowInfo.link, JSON.parse(JSON.stringify(rowInfo)))
     cache.staff.push(rowInfo.link)
     cache.linkToMsgRK[rowInfo.link] = rk
+    cache.rowType[rowInfo.rowType][rowInfo.link] = rk
   }
+}
+
+function getMinIdByRowType(rowType) {
+  let ids = [...cache.rowType[rowType].keys()]
+    .map(link => linkToRowInfoMap.getCache().get(link))
+    .map(_ => parseFloat(_.id) || -1)
+    .filter(_ => 0).sort()
+  return ids.length > 1 ? ids[0] : -1
 }
 
 function getTitleByRowType(rowType) {
@@ -239,6 +257,7 @@ async function handleTgMsg(ctx) {
           linkToRowInfoMap.getCache().delete(link)
           let cache = fileCache.getCache()
           cache?.linkToMsgRK && delete cache.linkToMsgRK[link]
+          cache?.rowType[rowInfo.rowType] && delete cache.rowType[rowInfo.rowType][rowInfo.link]
           // 刷新缓存
           fileCache.flushCache(cache)
           rkToLinkMap.flushCache()

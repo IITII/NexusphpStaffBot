@@ -82,7 +82,7 @@ module.exports = class NexusphpSchema {
   /**
    * 获取管理组私信列表
    */
-  async getStaffBoxList(page = 0) {
+  async getStaffBoxList(minId = -1, page = 0) {
     async function handleList($, url, rows) {
       // skip table header and footer
       let res = []
@@ -106,11 +106,22 @@ module.exports = class NexusphpSchema {
 
         res.push(tmp)
       }
-      // 只判每页最后一个是否已读, 如果已读, 则不再获取下一页
-      if (!res[res.length - 1]?.isRead) {
-        // if (page === 0) {
-        const nextPage = await self.getStaffBoxList(page + 1)
-        res = res.concat(nextPage.data)
+      if (minId < 1) {
+        // 判每页最后一个是否已读, 如果已读, 则不再获取下一页
+        logger.debug(`getStaffBoxList by read, page: ${page}, minId: ${minId}`)
+        if (!res[res.length - 1]?.isRead) {
+          // if (page === 0) {
+          const nextPage = await self.getStaffBoxList(minId, page + 1)
+          res = res.concat(nextPage.data)
+        }
+      } else {
+        // 因为 page++, id --. 筛选 id 最小值, 如果小于等于 minId, 则不再获取下一页
+        let min = res.map(_ => parseFloat(_) || 0).sort()[0]
+        logger.debug(`getStaffBoxList by minId, page: ${page}, minId: ${minId}, currMin: ${min}`)
+        if (min > minId) {
+          const nextPage = await self.getStaffBoxList(minId, page + 1)
+          res = res.concat(nextPage.data)
+        }
       }
       return Promise.resolve(res)
     }
@@ -126,7 +137,7 @@ module.exports = class NexusphpSchema {
   /**
    * 获取举报列表
    */
-  async getReportList(page = 0) {
+  async getReportList(minId = -1, page = 0) {
     async function handleList($, url, rows) {
       if (rows.length > 0 && $(rows[0]).text().includes('没有举报信息')) {
         logger.debug(`没有举报消息 in ${url}`)
@@ -136,7 +147,7 @@ module.exports = class NexusphpSchema {
       let res = []
       for (let i = 1; i < rows.length - 1; i++) {
         const cols = $(rows[i]).find('td').toArray()
-        let title, link, trLink, addLink, uid, username, userLink, time, id, isRead, detail, type,rowType = 'report'
+        let title, link, trLink, addLink, uid, username, userLink, time, id, isRead, detail, type, rowType = 'report'
         title = $(cols[2]).text()
         trLink = $(cols[2]).find('a')[0]?.attribs?.href
         username = $(cols[1]).text()
@@ -154,11 +165,21 @@ module.exports = class NexusphpSchema {
 
         res.push({title, link, trLink, addLink, username, userLink, time, id, isRead, detail, type, rowType})
       }
-      // 只判每页最后一个是否已读, 如果已读, 则不再获取下一页
-      if (!res[res.length - 1]?.isRead) {
-        // if (page === 0) {
-        const nextPage = await self.getReportList(page + 1)
-        res = res.concat(nextPage.data)
+      if (minId < 1) {
+        // 判每页最后一个是否已读, 如果已读, 则不再获取下一页
+        logger.debug(`getReportList by read, page: ${page}, minId: ${minId}`)
+        if (!res[res.length - 1]?.isRead) {
+          const nextPage = await self.getReportList(minId, page + 1)
+          res = res.concat(nextPage.data)
+        }
+      } else {
+        // 因为 page++, id --. 筛选 id 最小值, 如果小于等于 minId, 则不再获取下一页
+        let min = res.map(_ => parseFloat(_) || 0).sort()[0]
+        logger.debug(`getReportList by minId, page: ${page}, minId: ${minId}, currMin: ${min}`)
+        if (min > minId) {
+          const nextPage = await self.getReportList(minId, page + 1)
+          res = res.concat(nextPage.data)
+        }
       }
       return Promise.resolve(res)
     }
@@ -360,6 +381,7 @@ module.exports = class NexusphpSchema {
    */
   async getModTaskDetail(uid) {
     if (!uid) throw new Error(`uid is empty`)
+
     async function handleDom($, url) {
       console.log(url)
       let inputs = $("form[action='modtask.php'] input[value]").get(),
@@ -402,6 +424,7 @@ module.exports = class NexusphpSchema {
       res.GET_DATA = Object.keys(res.formatGroups || {}).length !== 0
       return Promise.resolve(res)
     }
+
     const url = `${this.getOrigin()}/userdetails.php?id=${uid}`
     return getDom(url, handleDom, false, this.getCookie())
   }
