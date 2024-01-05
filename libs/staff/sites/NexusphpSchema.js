@@ -106,19 +106,19 @@ module.exports = class NexusphpSchema {
 
         res.push(tmp)
       }
-      if (minId < 1) {
-        // 判每页最后一个是否已读, 如果已读, 则不再获取下一页
-        logger.debug(`getStaffBoxList by read, page: ${page}, minId: ${minId}`)
-        if (!res[res.length - 1]?.isRead) {
-          // if (page === 0) {
+      let ids = res.map(_ => parseFloat(_.id) || 0).filter(_ => _ > 0).sort()
+      if (minId > 0 && ids.length > 0) {
+        // 因为 page++, id --. 筛选 id 最小值, 如果小于等于 minId, 则不再获取下一页
+        let min = ids[0]
+        logger.debug(`getStaffBoxList by minId, page: ${page}, minId: ${minId}, currMin: ${min}`)
+        if (min > minId) {
           const nextPage = await self.getStaffBoxList(minId, page + 1)
           res = res.concat(nextPage.data)
         }
       } else {
-        // 因为 page++, id --. 筛选 id 最小值, 如果小于等于 minId, 则不再获取下一页
-        let min = res.map(_ => parseFloat(_) || 0).sort()[0]
-        logger.debug(`getStaffBoxList by minId, page: ${page}, minId: ${minId}, currMin: ${min}`)
-        if (min > minId) {
+        // 判每页最后一个是否已读, 如果已读, 则不再获取下一页
+        logger.debug(`getStaffBoxList by read, page: ${page}, minId: ${minId}`)
+        if (!res[res.length - 1]?.isRead) {
           const nextPage = await self.getStaffBoxList(minId, page + 1)
           res = res.concat(nextPage.data)
         }
@@ -165,18 +165,19 @@ module.exports = class NexusphpSchema {
 
         res.push({title, link, trLink, addLink, username, userLink, time, id, isRead, detail, type, rowType})
       }
-      if (minId < 1) {
-        // 判每页最后一个是否已读, 如果已读, 则不再获取下一页
-        logger.debug(`getReportList by read, page: ${page}, minId: ${minId}`)
-        if (!res[res.length - 1]?.isRead) {
+      let ids = res.map(_ => parseFloat(_.id) || 0).filter(_ => _ > 0).sort()
+      if (minId > 0 && ids.length > 0) {
+        // 因为 page++, id --. 筛选 id 最小值, 如果小于等于 minId, 则不再获取下一页
+        let min = ids[0]
+        logger.debug(`getReportList by minId, page: ${page}, minId: ${minId}, currMin: ${min}`)
+        if (min > minId) {
           const nextPage = await self.getReportList(minId, page + 1)
           res = res.concat(nextPage.data)
         }
       } else {
-        // 因为 page++, id --. 筛选 id 最小值, 如果小于等于 minId, 则不再获取下一页
-        let min = res.map(_ => parseFloat(_) || 0).sort()[0]
-        logger.debug(`getReportList by minId, page: ${page}, minId: ${minId}, currMin: ${min}`)
-        if (min > minId) {
+        // 判每页最后一个是否已读, 如果已读, 则不再获取下一页
+        logger.debug(`getReportList by read, page: ${page}, minId: ${minId}`)
+        if (!res[res.length - 1]?.isRead) {
           const nextPage = await self.getReportList(minId, page + 1)
           res = res.concat(nextPage.data)
         }
