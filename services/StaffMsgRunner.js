@@ -121,10 +121,10 @@ async function handleList(list, conf) {
 }
 
 function getMinIdByRowType(rowType) {
-  let ids = [...cache.rowType[rowType].keys()]
+  let ids = [...Object.keys(cache.rowType[rowType])]
     .map(link => linkToRowInfoMap.getCache().get(link))
     .map(_ => parseFloat(_.id) || -1)
-    .filter(_ => 0).sort()
+    .filter(_ => _ > -1).sort()
   return ids.length > 1 ? ids[0] : -1
 }
 
@@ -271,7 +271,7 @@ async function handleTgMsg(ctx) {
   }
 }
 
-
+run()
 // sendStaffMsg('test').then(console.log).catch(console.error)
 
 module.exports = {
