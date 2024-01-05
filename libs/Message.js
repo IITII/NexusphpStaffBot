@@ -16,6 +16,18 @@ async function sendTextToAdmin(text) {
 }
 
 /**
+ * 从发送消息的回调里面, 删除 TG 消息
+ */
+async function deleteMsgHandle(tgRes, timeout = 2000) {
+  let id = setTimeout(async () => {
+    let chatId = tgRes.chat.id || tgRes.result?.chat.id
+    let message_id = tgRes.message_id || tgRes.result?.message_id
+    await deleteMsg(chatId, message_id, true)
+  }, timeout)
+  return Promise.resolve(id)
+}
+
+/**
  * 删除 TG 消息
  * @param chat_id 群组 id
  * @param message_id 消息 id
@@ -126,4 +138,5 @@ module.exports = {
   sendTextToAdmin,
   sendStaffMsg,
   deleteMsg,
+  deleteMsgHandle,
 }

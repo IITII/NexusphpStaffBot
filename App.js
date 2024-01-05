@@ -3,7 +3,7 @@
 const {logger, loggerMiddleware} = require('./libs/utils/logger.js'),
   {bot} = require('./libs/message/TelegramBot.js'),
   StaffMsgRunner = require('./services/StaffMsgRunner.js')
-const {sendTextToAdmin} = require('./libs/Message.js')
+const {sendTextToAdmin, deleteMsgHandle} = require('./libs/Message.js')
 const {formatDate} = require('./libs/utils/utils.js')
 
 const actions = [
@@ -96,8 +96,8 @@ Promise.resolve()
       return ctx.reply(JSON.stringify(msg))
     })
     bot.command('staff', ctx => {
-      StaffMsgRunner.run().then(r => ctx.reply('StaffMsgRunner run finished'))
-      return ctx.reply('StaffMsgRunner start...')
+      StaffMsgRunner.run().then(r => ctx.reply('StaffMsgRunner run finished')).then(deleteMsgHandle)
+      return ctx.reply('StaffMsgRunner start...').then(deleteMsgHandle)
     })
     actions.forEach(([action, handler]) => {
       bot.action(action, handler)
