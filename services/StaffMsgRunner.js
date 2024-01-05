@@ -96,7 +96,6 @@ async function handleList(list, conf) {
       await deleteMsg(groupId, message_id, true)
 
       // 清理缓存
-      let rowInfo = linkToRowInfoMap.getCache().get(rowInfo.link)
       cache?.linkToMsgRK && delete cache.linkToMsgRK[rowInfo.link]
       cache?.rowType[rowInfo.rowType] && delete cache.rowType[rowInfo.rowType][rowInfo.link]
       rkToLinkMap.getCache().delete(rk)
