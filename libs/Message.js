@@ -36,7 +36,7 @@ async function deleteMsgHandle(tgRes, timeout = 2000) {
 async function deleteMsg(chat_id, message_id, noThrow = false) {
   let res = Promise.resolve()
   try {
-    res = handle429(0, deleteMessage, chat_id, message_id)
+    res = await handle429(0, deleteMessage, chat_id, message_id)
   } catch (e) {
     logger.warn(`deleteMsg failed: ${e.message}`, e)
     if (!noThrow) {
