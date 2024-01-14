@@ -34,15 +34,16 @@ async function deleteMsgHandle(tgRes, timeout = 2000) {
  * @param noThrow 是否抛出异常
  */
 async function deleteMsg(chat_id, message_id, noThrow = false) {
+  let res = Promise.resolve()
   try {
-    return handle429(0, deleteMessage, chat_id, message_id)
+    res = handle429(0, deleteMessage, chat_id, message_id)
   } catch (e) {
     logger.warn(`deleteMsg failed: ${e.message}`, e)
     if (!noThrow) {
       throw e
     }
-    return Promise.resolve()
   }
+  return res
 }
 
 async function sendStaffMsg(text, links = [], parse_mode = 'html', groupId = message.groupId, message_thread_id = message.generalMsgThreadId) {
